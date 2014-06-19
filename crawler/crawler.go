@@ -11,7 +11,7 @@ type Crawler struct {
 }
 
 func NewCrawler() {
-	return
+	return &Crawler
 }
 
 func (c *Crawler) IsRun() {
