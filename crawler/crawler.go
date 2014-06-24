@@ -2,8 +2,10 @@ package crawler
 
 import (
 	html "code.google.com/p/go.net/html"
+	queue "github.com/termith/bfs-crawler/queue"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // Tools for crawler
@@ -11,12 +13,14 @@ import (
 type Crawler struct {
 	isRun       bool
 	visitedUrls []string
+	homeDir     string
 }
 
 func NewCrawler() *Crawler {
 	return &Crawler{
 		isRun:       false,
-		visitedUrls: make([]string, 10),
+		visitedUrls: make([]string, 0),
+		homeDir:     "/home/ddemidov/bfs/",
 	}
 }
 
@@ -24,7 +28,7 @@ func (c *Crawler) IsRun() bool {
 	return c.isRun
 }
 
-func (c *Crawler) SavePageToDisk(url string, pathToFile string) (int, error) {
+func (c *Crawler) SavePageToDisk(url string) (int, error) {
 	page, getError := http.Get(url) // Do we need get page content two times - here and in FindAllUrls
 	if getError != nil {
 		return 1, getError
@@ -36,7 +40,9 @@ func (c *Crawler) SavePageToDisk(url string, pathToFile string) (int, error) {
 		return 1, readError
 	}
 
-	writeError := ioutil.WriteFile(pathToFile+url, file, 0777)
+	pathToFile := c.homeDir + strings.Replace(url, "/", "_", -1)
+
+	writeError := ioutil.WriteFile(pathToFile, file, 0777)
 	if writeError != nil {
 		return 1, writeError
 	}
@@ -44,8 +50,7 @@ func (c *Crawler) SavePageToDisk(url string, pathToFile string) (int, error) {
 	return 0, nil
 }
 
-func (c *Crawler) FindAllUrls(url string) ([]string, error) {
-	findedUrls := make([]string, 10)
+func (c *Crawler) FindAllUrls(url queue.Url, urlQueue *queue.UrlQueue) error {
 
 	/*TODO: I have to draw with function because I don't understand how it works
 	  And may be it can be done simple... */
@@ -55,8 +60,11 @@ func (c *Crawler) FindAllUrls(url string) ([]string, error) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for _, a := range n.Attr {
 				if a.Key == "href" {
-					findedUrls = append(findedUrls, a.Val)
-					break
+					if strings.Contains(a.Val, "http") {
+						urlQueue.Push(queue.Url{Url: a.Val, Depth: url.Depth + 1})
+						break
+					}
+
 				}
 			}
 		}
@@ -65,20 +73,20 @@ func (c *Crawler) FindAllUrls(url string) ([]string, error) {
 		}
 	}
 
-	page, getError := http.Get(url)
+	page, getError := http.Get(url.Url)
 	if getError != nil {
-		return nil, getError
+		return getError
 	}
 
 	pageReader := page.Body
 
 	pageContent, parseError := html.Parse(pageReader)
 	if parseError != nil {
-		return nil, parseError
+		return parseError
 	}
 
 	newParser(pageContent)
-	return findedUrls, nil
+	return nil
 
 }
 
