@@ -20,7 +20,7 @@ func NewCrawler() *Crawler {
 	return &Crawler{
 		isRun:       false,
 		visitedUrls: make([]string, 0),
-		homeDir:     "/home/ddemidov/bfs/",
+		homeDir:     "/home/termith/bfs/",
 	}
 }
 
@@ -29,7 +29,7 @@ func (c *Crawler) IsRun() bool {
 }
 
 func (c *Crawler) SavePageToDisk(url string) (int, error) {
-	page, getError := http.Get(url) // Do we need get page content two times - here and in FindAllUrls
+	page, getError := http.Get(url)
 	if getError != nil {
 		return 1, getError
 	}

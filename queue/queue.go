@@ -28,9 +28,9 @@ func (q *UrlQueue) Push(url Url) {
 func (q *UrlQueue) Pop() interface{} {
 	if q.queue.Front() == nil {
 		return nil
-	} else {
+	} 
 		return q.queue.Remove(q.queue.Front())
-	}
+	
 }
 
 func (q *UrlQueue) Clear() {

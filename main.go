@@ -7,9 +7,54 @@ import (
 	queue "github.com/termith/bfs-crawler/queue"
 )
 
+func saveAllPages(urlChannel, doneChannel chan string, urlReceiver *crawler.Crawler) {
+	fmt.Println("Start saving...")
+	for {
+		if url := <-urlChannel; url == "done" {
+			fmt.Println("Saving is done!")
+			doneChannel <- "done"
+			return
+		} else {
+			status, e := urlReceiver.SavePageToDisk(url)
+			if status > 0 {
+				panic(e)
+			}
+		}
+	}
+}
+
+func findAllUrls(waitQueue *queue.UrlQueue, urlFinder *crawler.Crawler, urlChannel chan string, depthLimit int) {
+	fmt.Println("Start seraching...")
+	for {
+		if nextUrl, ok := waitQueue.Pop().(queue.Url); ok { //If next Url is queue.Url
+			if nextUrl.Depth <= depthLimit { // We need to save pages with depth = depthLimit
+				if !urlFinder.CheckUrlIsVisited(nextUrl.Url) { // If url is not visited
+					urlFinder.AppendToVisitedUrls(nextUrl.Url)
+					urlChannel <- nextUrl.Url                      // Send url to saver
+					e := urlFinder.FindAllUrls(nextUrl, waitQueue) // Then parse page
+					if e != nil {
+						panic(e)
+					}
+				}
+			} else {
+				urlChannel <- "done"
+				waitQueue.Clear()
+				fmt.Println("Searching is done!")
+				break
+			}
+		}
+	}
+}
+
 func main() {
+
+	urlReciever := make(chan string)
+	doneChannel := make(chan string)
+
+	urlFinder := crawler.NewCrawler()
+	pageSaver := crawler.NewCrawler()
+
 	myQueue := queue.NewQueue()
-	myCrawler := crawler.NewCrawler()
 
 	var startUrl string
 	var depthLimit int
@@ -21,23 +66,9 @@ func main() {
 
 	myQueue.Push(queue.Url{Url: startUrl, Depth: 0})
 
-	for {
-		if nextUrl, ok := myQueue.Pop().(queue.Url); ok { //If next Url is queue.Url
-			if nextUrl.Depth <= depthLimit { // We need to save pages with depth = depthLimit
-				if !myCrawler.CheckUrlIsVisited(nextUrl.Url) { // If url is not visited
-					if status, e := myCrawler.SavePageToDisk(nextUrl.Url); status != 0 { // Try to save page on disk
-						panic(e)
-					}
-					e := myCrawler.FindAllUrls(nextUrl, myQueue) // Then parse page
-					if e != nil {
-						panic(e)
-					}
-				}
-			} else {
-				myQueue.Clear()
-				fmt.Println("We are done!")
-				break
-			}
-		}
-	}
+	go findAllUrls(myQueue, urlFinder, urlReciever, depthLimit)
+	go saveAllPages(urlReciever, doneChannel, pageSaver)
+
+	<-doneChannel
+
 }
