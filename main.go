@@ -24,7 +24,7 @@ func saveAllPages(urlChannel, doneChannel chan string, urlReceiver *crawler.Craw
 }
 
 func findAllUrls(waitQueue *queue.UrlQueue, urlFinder *crawler.Crawler, urlChannel chan string, depthLimit int) {
-	fmt.Println("Start seraching...")
+	fmt.Println("Start searching...")
 	for {
 		if nextUrl, ok := waitQueue.Pop().(queue.Url); ok { //If next Url is queue.Url
 			if nextUrl.Depth <= depthLimit { // We need to save pages with depth = depthLimit
@@ -46,9 +46,12 @@ func findAllUrls(waitQueue *queue.UrlQueue, urlFinder *crawler.Crawler, urlChann
 	}
 }
 
+
 func main() {
 
-	urlReciever := make(chan string)
+	const buffSize int = 5
+
+	urlReciever := make(chan string, buffSize)
 	doneChannel := make(chan string)
 
 	urlFinder := crawler.NewCrawler()
