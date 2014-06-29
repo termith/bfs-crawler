@@ -49,8 +49,6 @@ func findAllUrls(waitQueue *queue.UrlQueue, urlFinder *crawler.Crawler, urlChann
 
 func main() {
 
-	const buffSize int = 5
-
 	urlReciever := make(chan string, buffSize)
 	doneChannel := make(chan string)
 
@@ -61,9 +59,11 @@ func main() {
 
 	var startUrl string
 	var depthLimit int
+	var buffSize int
 
 	flag.StringVar(&startUrl, "url", "http://golang.org/", "Start url. golang.org by default")
 	flag.IntVar(&depthLimit, "depth", 1, "Depth limit. 1 by default")
+	flag.IntVar(&buffSize, "buffer", 5, "Buffer size. 5 by default")
 
 	flag.Parse()
 

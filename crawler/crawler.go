@@ -52,7 +52,7 @@ func (c *Crawler) SavePageToDisk(url string) (int, error) {
 
 func (c *Crawler) FindAllUrls(url queue.Url, urlQueue *queue.UrlQueue) error {
 
-	/*TODO: I have to draw with function because I don't understand how it works
+	/*TODO: I have to draw this function because I don't understand how it works
 	  And may be it can be done simple... */
 
 	var newParser func(*html.Node)
