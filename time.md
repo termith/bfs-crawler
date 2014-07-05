@@ -13,8 +13,10 @@ sys		0m0.186s
 `
 
 Работают 2 Saver'а
-`real	0m31.696s
-user	0m1.260s
-sys	0m0.193s
+`real	0m54.268s
+user	0m15.241s
+sys		0m1.324s
 `
+
+
 

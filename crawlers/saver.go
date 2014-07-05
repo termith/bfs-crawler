@@ -20,8 +20,9 @@ func NewSaver(dir string) *Saver {
 func (s *Saver) Run(urlChannel <-chan string, doneChannel chan<- string) {
 	fmt.Println("Start saving...")
 	for {
-		if url := <-urlChannel; url == "done" {
+		if url := <-urlChannel; url == DONE_STATUS {
 			doneChannel <- "done"
+			fmt.Println("Saving is done!")
 			return
 		} else {
 			err := s.SavePageToDisk(url)

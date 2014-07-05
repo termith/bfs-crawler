@@ -13,12 +13,14 @@ import (
 type Finder struct {
 	visitedUrls []string
 	depthLimit  int
+	numOfSavers int
 }
 
-func NewFinder(maxDepth int) *Finder {
+func NewFinder(maxDepth, numOfSavers int) *Finder {
 	return &Finder{
 		visitedUrls: make([]string, 0),
 		depthLimit:  maxDepth,
+		numOfSavers: numOfSavers,
 	}
 }
 
@@ -36,8 +38,9 @@ func (f *Finder) Run(waitQueue *queue.UrlQueue, urlChannel chan<- string) {
 					}
 				}
 			} else {
-				urlChannel <- "done"
-				urlChannel <- "done"
+				for ; f.numOfSavers > 0; f.numOfSavers-- {
+					urlChannel <- DONE_STATUS
+				}
 				waitQueue.Clear()
 				fmt.Println("Searching is done!")
 				break
